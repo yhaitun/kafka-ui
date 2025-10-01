@@ -335,8 +335,9 @@
                                             </div>
                                         </td>
                                         <td class="action-cell">
-                                            <button class="btn btn-sm btn-outline-primary" type="button" 
-                                                    th:onclick="'showMessageDetail(\'' + ${#strings.replace(message, \"'\", \"\\'\")} + '\')'">
+                                            <button class="btn btn-sm btn-outline-primary" type="button"
+                                                    th:attr="data-message=${message}"
+                                                    onclick="showMessageDetail(this.dataset.message)">
                                                 查看详情
                                             </button>
                                         </td>
@@ -373,7 +374,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <pre id="modalMessageContent" style="white-space: pre-wrap; word-break: break-word; font-family: 'Courier New', monospace;"></pre>
+                    <pre id="modalMessageContent" style="white-space: pre-wrap; word-wrap: break-word; font-family: 'Courier New', monospace;"></pre>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
@@ -383,10 +384,10 @@
     </div>
 
     <script>
-        // 显示消息详情的函数
         function showMessageDetail(message) {
+            console.log("message:", message); // 调试用
             document.getElementById('modalMessageContent').textContent = message;
-            const modal = new bootstrap.Modal(document.getElementById('messageDetailModal'));
+            var modal = new bootstrap.Modal(document.getElementById('messageDetailModal'));
             modal.show();
         }
     </script>
