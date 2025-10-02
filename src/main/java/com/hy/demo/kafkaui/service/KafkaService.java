@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 public class KafkaService {
@@ -46,6 +47,19 @@ public class KafkaService {
             e.printStackTrace();
             return Collections.emptyList();
         }
+    }
+    
+    public List<String> searchTopics(String bootstrapServers, String keyword) {
+        List<String> allTopics = getTopics(bootstrapServers);
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return allTopics;
+        }
+        
+        String searchTerm = keyword.toLowerCase();
+        return allTopics.stream()
+                .filter(topic -> topic.toLowerCase().contains(searchTerm))
+                .sorted()
+                .collect(Collectors.toList());
     }
     
     public boolean createTopic(String topicName, int partitions, short replicationFactor) {

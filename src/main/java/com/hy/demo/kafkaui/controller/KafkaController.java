@@ -20,7 +20,7 @@ public class KafkaController {
     private ClusterService clusterService;
     
     @GetMapping("/")
-    public String index(Model model) {
+    public String index(@RequestParam(required = false) String keyword, Model model) {
         // 获取激活的集群列表
         List<KafkaCluster> clusters = clusterService.getActiveClusters();
         model.addAttribute("clusters", clusters);
@@ -28,7 +28,16 @@ public class KafkaController {
         // 如果有激活的集群，获取第一个集群的主题列表
         if (!clusters.isEmpty()) {
             KafkaCluster activeCluster = clusters.get(0);
-            List<String> topics = kafkaService.getTopics(activeCluster.getBootstrapServers());
+            
+            // 如果有关键字，则搜索主题，否则获取所有主题
+            List<String> topics;
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                topics = kafkaService.searchTopics(activeCluster.getBootstrapServers(), keyword);
+                model.addAttribute("keyword", keyword);
+            } else {
+                topics = kafkaService.getTopics(activeCluster.getBootstrapServers());
+            }
+            
             model.addAttribute("topics", topics);
             model.addAttribute("activeCluster", activeCluster);
         }
@@ -37,7 +46,9 @@ public class KafkaController {
     }
     
     @GetMapping("/cluster/{id}")
-    public String clusterTopics(@PathVariable Long id, Model model) {
+    public String clusterTopics(@PathVariable Long id, 
+                              @RequestParam(required = false) String keyword,
+                              Model model) {
         // 获取所有激活的集群
         List<KafkaCluster> clusters = clusterService.getActiveClusters();
         model.addAttribute("clusters", clusters);
@@ -45,7 +56,15 @@ public class KafkaController {
         // 获取指定集群的主题列表
         KafkaCluster selectedCluster = clusterService.getClusterById(id)
             .orElseThrow(() -> new RuntimeException("未找到集群"));
-        List<String> topics = kafkaService.getTopics(selectedCluster.getBootstrapServers());
+        
+        // 如果有关键字，则搜索主题，否则获取所有主题
+        List<String> topics;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            topics = kafkaService.searchTopics(selectedCluster.getBootstrapServers(), keyword);
+            model.addAttribute("keyword", keyword);
+        } else {
+            topics = kafkaService.getTopics(selectedCluster.getBootstrapServers());
+        }
         
         model.addAttribute("topics", topics);
         model.addAttribute("activeCluster", selectedCluster);
