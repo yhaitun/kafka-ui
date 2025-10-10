@@ -140,4 +140,36 @@ public class KafkaController {
         
         return "index";
     }
+    
+    @GetMapping("/topic/search")
+    public String searchTopics(@RequestParam String keyword,
+                             @RequestParam(required = false) Long clusterId,
+                             Model model) {
+        // 获取所有激活的集群
+        List<KafkaCluster> clusters = clusterService.getActiveClusters();
+        model.addAttribute("clusters", clusters);
+        
+        List<String> topics;
+        KafkaCluster activeCluster = null;
+        
+        if (clusterId != null) {
+            // 获取指定集群
+            activeCluster = clusterService.getClusterById(clusterId)
+                .orElseThrow(() -> new RuntimeException("未找到集群"));
+            topics = kafkaService.searchTopics(activeCluster.getBootstrapServers(), keyword);
+        } else if (!clusters.isEmpty()) {
+            // 如果没有指定集群但有可用集群，使用第一个集群
+            activeCluster = clusters.get(0);
+            topics = kafkaService.searchTopics(activeCluster.getBootstrapServers(), keyword);
+        } else {
+            // 没有可用集群
+            topics = null;
+        }
+        
+        model.addAttribute("topics", topics);
+        model.addAttribute("activeCluster", activeCluster);
+        model.addAttribute("keyword", keyword);
+        
+        return "index";
+    }
 }
